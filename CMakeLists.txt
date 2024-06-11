@@ -3,4 +3,4 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 project(joystick_example)
 
-target_sources(app PRIVATE src/main.c src/led.c)
+target_sources(app PRIVATE src/main.c services/my_service.c src/led.c)
