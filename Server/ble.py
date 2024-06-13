@@ -1,10 +1,55 @@
 from adafruit_ble import BLERadio
 from adafruit_ble.advertising.standard import ProvideServicesAdvertisement
 from adafruit_ble.services.nordic import UARTService
+import subprocess
+import threading
 
-# Define device IDs
-ID1 = "Jang"
-ID2 = "1EE3DDA6-D71B-D36B-F8D9-80A276B9D891"
+# Function to read from Bluetooth device and send to subprocess
+def read_from_device_and_send(device, process):
+    while device and device.connected:
+        data = device[UARTService].read(64)  # Adjust buffer size as needed
+
+        if data:
+            data = data.decode('utf-8')
+
+            if (data == "Button1"):
+                process.stdin.write(b"END\n")
+                process.stdin.flush()
+                process.stdin.write(b"END\n")
+                process.stdin.flush()
+
+                break
+
+            if (data == "Up"):
+                process.stdin.write(b"UP\n")
+                process.stdin.flush()
+
+            if (data == "Down"):
+                process.stdin.write(b"DOWN\n")
+                process.stdin.flush()
+            
+        print(data)
+
+        # if data:
+        #     process.stdin.write(data)
+        #     process.stdin.flush()
+        #     print(f"Sent data to subprocess: {data}")
+
+# Function to run the subprocess
+def run_subprocess():
+    # Start the subprocess
+    process = subprocess.Popen(['python', 'pong.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # Start thread to read from Bluetooth device and send to subprocess
+    read_thread = threading.Thread(target=read_from_device_and_send, args=(device, process))
+    read_thread.start()
+
+    stdout = process.poll()
+
+    print(stdout)
+
+    # Wait for the read thread to finish
+    read_thread.join()
 
 # Initialize BLE radio
 radio = BLERadio()
@@ -19,7 +64,8 @@ for entry in radio.start_scan(timeout=60, minimum_rssi=-80):
     if addr not in found:
         print(entry.complete_name)
 
-        if addr.string == ID1 or addr.string == ID2:
+        # Replace with your device IDs
+        if entry.complete_name in ["Jang", "Han"]:
             found.add(addr)
             device = radio.connect(entry)
             print("Device connected!")
@@ -27,21 +73,20 @@ for entry in radio.start_scan(timeout=60, minimum_rssi=-80):
 
 radio.stop_scan()
 
-buffer = device[UARTService]
+if device:
+    # Start subprocess in a separate thread
+    subprocess_thread = threading.Thread(target=run_subprocess)
+    subprocess_thread.start()
 
-print(buffer)
+    # Continue interacting with the Bluetooth device or perform other tasks as needed
+    while device.connected:
+        # Example: Read more data from device if necessary
+        # data = device[UARTService].read(64)
+        # Process or handle data as needed
 
-buffer = 64
+        pass  
 
-while device and device.connected:
 
-    try:
-        message = device[UARTService].read(buffer)
-        print(message)
-    except OSError:
-        try:
-            uart_connection.disconnect()
-        except:  # pylint: disable=bare-except
-            pass
-        uart_connection = None
-        
+    subprocess_thread.join()
+
+print("Disconnected from device or timeout reached. Exiting...")

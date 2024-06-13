@@ -465,12 +465,12 @@ void button_changed(uint32_t button_state, uint32_t has_changed)
     uint32_t buttons = button_state & has_changed;
 
     if (buttons & BUTTON1) {
-        char buf[7] = "Button1";
+        char buf[7] = "Button1\n";
         bt_nus_send(NULL, buf, sizeof(buf));
     }
 
     if (buttons & BUTTON2) {
-        char buf[7] = "Button2";
+        char buf[7] = "Button2\n";
         bt_nus_send(NULL, buf, sizeof(buf));
     }
 
@@ -617,7 +617,7 @@ int main(void)
         // k_sleep(K_MSEC(100));
 
         dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
-        k_sleep(K_MSEC(100));
+        k_sleep(K_MSEC(50));
         // bt_nus_send(NULL, buf, 20);
     }
 }
