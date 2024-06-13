@@ -50,12 +50,10 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
 #define RUN_STATUS_LED DK_LED1
-#define RUN_LED_BLINK_INTERVAL 1000
-
 #define CON_STATUS_LED DK_LED2
 
-#define KEY_PASSKEY_ACCEPT DK_BTN1_MSK
-#define KEY_PASSKEY_REJECT DK_BTN2_MSK
+#define BUTTON1 DK_BTN1_MSK
+#define BUTTON2 DK_BTN2_MSK
 
 #define UART_BUF_SIZE CONFIG_BT_NUS_UART_BUFFER_SIZE
 #define UART_WAIT_FOR_BUF_DELAY K_MSEC(50)
@@ -395,98 +393,12 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
     }
 }
 
-#ifdef CONFIG_BT_NUS_SECURITY_ENABLED
-static void security_changed(struct bt_conn *conn, bt_security_t level,
-                 enum bt_security_err err)
-{
-    char addr[BT_ADDR_LE_STR_LEN];
-
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-    if (!err) {
-        LOG_INF("Security changed: %s level %u", addr, level);
-    } else {
-        LOG_WRN("Security failed: %s level %u err %d", addr,
-            level, err);
-    }
-}
-#endif
 
 BT_CONN_CB_DEFINE(conn_callbacks) = {
     .connected    = connected,
-    .disconnected = disconnected,
-#ifdef CONFIG_BT_NUS_SECURITY_ENABLED
-    .security_changed = security_changed,
-#endif
+    .disconnected = disconnected
 };
 
-#if defined(CONFIG_BT_NUS_SECURITY_ENABLED)
-static void auth_passkey_display(struct bt_conn *conn, unsigned int passkey)
-{
-    char addr[BT_ADDR_LE_STR_LEN];
-
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-    LOG_INF("Passkey for %s: %06u", addr, passkey);
-}
-
-static void auth_passkey_confirm(struct bt_conn *conn, unsigned int passkey)
-{
-    char addr[BT_ADDR_LE_STR_LEN];
-
-    auth_conn = bt_conn_ref(conn);
-
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-    LOG_INF("Passkey for %s: %06u", addr, passkey);
-    LOG_INF("Press Button 1 to confirm, Button 2 to reject.");
-}
-
-
-static void auth_cancel(struct bt_conn *conn)
-{
-    char addr[BT_ADDR_LE_STR_LEN];
-
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-    LOG_INF("Pairing cancelled: %s", addr);
-}
-
-
-static void pairing_complete(struct bt_conn *conn, bool bonded)
-{
-    char addr[BT_ADDR_LE_STR_LEN];
-
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-    LOG_INF("Pairing completed: %s, bonded: %d", addr, bonded);
-}
-
-
-static void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
-{
-    char addr[BT_ADDR_LE_STR_LEN];
-
-    bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
-
-    LOG_INF("Pairing failed conn: %s, reason %d", addr, reason);
-}
-
-
-static struct bt_conn_auth_cb conn_auth_callbacks = {
-    .passkey_display = auth_passkey_display,
-    .passkey_confirm = auth_passkey_confirm,
-    .cancel = auth_cancel,
-};
-
-static struct bt_conn_auth_info_cb conn_auth_info_callbacks = {
-    .pairing_complete = pairing_complete,
-    .pairing_failed = pairing_failed
-};
-#else
-static struct bt_conn_auth_cb conn_auth_callbacks;
-static struct bt_conn_auth_info_cb conn_auth_info_callbacks;
-#endif
 
 static void bt_receive_cb(struct bt_conn *conn, const uint8_t *const data,
               uint16_t len)
@@ -548,47 +460,30 @@ void error(void)
     }
 }
 
-#ifdef CONFIG_BT_NUS_SECURITY_ENABLED
-static void num_comp_reply(bool accept)
-{
-    if (accept) {
-        bt_conn_auth_passkey_confirm(auth_conn);
-        LOG_INF("Numeric Match, conn %p", (void *)auth_conn);
-    } else {
-        bt_conn_auth_cancel(auth_conn);
-        LOG_INF("Numeric Reject, conn %p", (void *)auth_conn);
-    }
-
-    bt_conn_unref(auth_conn);
-    auth_conn = NULL;
-}
-
 void button_changed(uint32_t button_state, uint32_t has_changed)
 {
     uint32_t buttons = button_state & has_changed;
 
-    if (auth_conn) {
-        if (buttons & KEY_PASSKEY_ACCEPT) {
-            num_comp_reply(true);
-        }
-
-        if (buttons & KEY_PASSKEY_REJECT) {
-            num_comp_reply(false);
-        }
+    if (buttons & BUTTON1) {
+        char buf[7] = "Button1";
+        bt_nus_send(NULL, buf, sizeof(buf));
     }
+
+    if (buttons & BUTTON2) {
+        char buf[7] = "Button2";
+        bt_nus_send(NULL, buf, sizeof(buf));
+    }
+
 }
-#endif /* CONFIG_BT_NUS_SECURITY_ENABLED */
 
 static void configure_gpio(void)
 {
     int err;
 
-#ifdef CONFIG_BT_NUS_SECURITY_ENABLED
     err = dk_buttons_init(button_changed);
     if (err) {
         LOG_ERR("Cannot init buttons (err: %d)", err);
     }
-#endif /* CONFIG_BT_NUS_SECURITY_ENABLED */
 
     err = dk_leds_init();
     if (err) {
@@ -606,20 +501,6 @@ int main(void)
     err = uart_init();
     if (err) {
         error();
-    }
-
-    if (IS_ENABLED(CONFIG_BT_NUS_SECURITY_ENABLED)) {
-        err = bt_conn_auth_cb_register(&conn_auth_callbacks);
-        if (err) {
-            printk("Failed to register authorization callbacks.\n");
-            return 0;
-        }
-
-        err = bt_conn_auth_info_cb_register(&conn_auth_info_callbacks);
-        if (err) {
-            printk("Failed to register authorization info callbacks.\n");
-            return 0;
-        }
     }
 
     err = bt_enable(NULL);
