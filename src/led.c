@@ -9,11 +9,6 @@ int led_init(void)
     return 0;
 }
 
-void led_on_on(int current) {
-    led_on(led, current);
-    k_sleep(K_MSEC(100));
-}
-
 void led_off_all(void)
 {
     for(int i = 0; i< MAX_LED_NUM; i++){
