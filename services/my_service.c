@@ -23,14 +23,14 @@
 #define MAX_TRANSMIT_SIZE 240//TODO figure this out
 
 uint8_t data_rx[MAX_TRANSMIT_SIZE];
-uint8_t data_tx[MAX_TRANSMIT_SIZE];
+uint8_t data_tx[MAX_TRANSMIT_SIZE];//데이터 최대 크기 설정
 
 int my_service_init(void)
 {
     int err = 0;
 
     memset(&data_rx, 0, MAX_TRANSMIT_SIZE);
-    memset(&data_tx, 0, MAX_TRANSMIT_SIZE);
+    memset(&data_tx, 0, MAX_TRANSMIT_SIZE);//버퍼 초기화
 
     return err;
 }
@@ -55,7 +55,7 @@ static ssize_t on_receive(struct bt_conn *conn,
 }
 
 /* This function is called whenever a Notification has been sent by the TX Characteristic */
-static void on_sent(struct bt_conn *conn, void *user_data)
+static void on_sent(struct bt_conn *conn, void *user_data)//블루투스 연결 후 연결에 대한 확인을 하는 역할
 {
 	ARG_UNUSED(user_data);
 
