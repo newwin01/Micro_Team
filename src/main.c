@@ -43,7 +43,6 @@
 #define LOG_MODULE_NAME peripheral_uart
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
-<<<<<<< HEAD
 #define STACKSIZE CONFIG_BT_NUS_THREAD_STACK_SIZE
 #define PRIORITY 7
 
@@ -643,4 +642,3 @@ void ble_write_thread(void)
 
 K_THREAD_DEFINE(ble_write_thread_id, STACKSIZE, ble_write_thread, NULL, NULL,
         NULL, PRIORITY, 0, 0);
-
