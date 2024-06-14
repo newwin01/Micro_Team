@@ -23,9 +23,10 @@ paddle_height = 100
 ball_size = 10
 
 # Speeds
-ball_speed_x = 2
+ball_speed_x = 1
 ball_speed_y = 2
-paddle_speed = 10
+paddle_speed = 100
+AI_paddle_speed = 5
 
 # Create the screen
 screen = pygame.display.set_mode((screen_width, screen_height))
@@ -43,34 +44,29 @@ def draw_ball(ball):
 # Global variable to track if the game should end
 terminate_game = False
 
-move_up = False
-move_down = False
-
 def read_messages():
-    global terminate_game, move_up, move_down
+    global terminate_game
     while True:
         message = sys.stdin.buffer.readline().rstrip()  # Read the message as bytes and remove trailing newline
 
-        if message.decode('utf-8') == "END": 
+        if "END" in message.decode('utf-8'):
             print("Received termination signal. Exiting...")
             terminate_game = True
             break
-        elif message.decode('utf-8') == "UP":
-            move_down = False
-            move_up = True   # Set flag for moving paddle up continuously
-        elif message.decode('utf-8') == "DOWN":
-            move_up = False
-            move_down = True  # Set flag for moving paddle down continuously
+        elif "UP" in message.decode('utf-8'):
+            move_left_paddle(-1)  # Move paddle up
+        elif "DOWN" in message.decode('utf-8'):
+            move_left_paddle(1)   # Move paddle down
 
-def move_left_paddle():
-    global left_paddle, move_up, move_down
-    if move_up and left_paddle.top > 0:
+def move_left_paddle(direction):
+    global left_paddle
+    if direction == -1 and left_paddle.top > 0:
         left_paddle.y -= paddle_speed
-    elif move_down and left_paddle.bottom < screen_height:
+    elif direction == 1 and left_paddle.bottom < screen_height:
         left_paddle.y += paddle_speed
 
 def main():
-    global left_paddle, move_up, move_down
+    global left_paddle
 
     # Start a separate thread to read messages from stdin
     message_thread = threading.Thread(target=read_messages)
@@ -106,20 +102,15 @@ def main():
                     print("Received termination signal. Exiting...")
                     terminate_game = True
                 elif decoded_message == "UP":
-                    move_up = True
-                    move_down = False
+                    move_left_paddle(-1)
                 elif decoded_message == "DOWN":
-                    move_down = True
-                    move_up = False
-
-        # Move the left paddle based on continuous movement flags
-        move_left_paddle()
+                    move_left_paddle(1)
 
         # AI for the right paddle
         if right_paddle.centery < ball.centery and right_paddle.bottom < screen_height:
-            right_paddle.y += paddle_speed
+            right_paddle.y += AI_paddle_speed
         if right_paddle.centery > ball.centery and right_paddle.top > 0:
-            right_paddle.y -= paddle_speed
+            right_paddle.y -= AI_paddle_speed
 
         ball.x += ball_dx
         ball.y += ball_dy

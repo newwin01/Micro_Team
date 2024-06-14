@@ -583,13 +583,13 @@ int main(void)
         nowY = (int32_t)bufled;
 
         if (nowX >= 65500 || nowY >= 65500){
-         k_sleep(K_MSEC(100));
+         k_sleep(K_MSEC(50));
          continue;
         }
 
         bool checkFlag = isChange();
         if(!checkFlag){
-         	k_sleep(K_MSEC(100));
+         	k_sleep(K_MSEC(50));
          continue;
         } else {
          led_off_all();
@@ -630,7 +630,7 @@ void ble_write_thread(void)
     for (;;) {
         /* Wait indefinitely for data to be sent over bluetooth */
         struct uart_data_t *buf = k_fifo_get(&fifo_uart_rx_data,
-                             K_FOREVER);
+                             K_MSEC(50));
 
         if (bt_nus_send(NULL, buf->data, buf->len)) {
             LOG_WRN("Failed to send data over BLE connection");
