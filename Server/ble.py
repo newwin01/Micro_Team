@@ -27,6 +27,13 @@ def read_from_device_and_send(device, process):
             elif data == "Down":
                 process.stdin.write(b"DOWN\n")
                 process.stdin.flush()
+            elif data == "Left":
+                process.stdin.write(b"LEFT\n")
+                process.stdin.flush()
+            elif data == "Right":
+                process.stdin.write(b"RIGHT\n")
+                process.stdin.flush()
+            
 
             print(data)
 
