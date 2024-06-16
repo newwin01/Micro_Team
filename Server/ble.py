@@ -16,39 +16,38 @@ def read_from_device_and_send(device, process):
 
             # Send the appropriate commands to the subprocess
             if data == "Button1":
+
                 process.stdin.write(b"END\n")
                 process.stdin.flush()
                 process.stdin.write(b"END\n")
                 process.stdin.flush()
                 break
-            elif data == "Up":
+
+            elif data.find("Up") != -1:
                 process.stdin.write(b"UP\n")
+                
                 process.stdin.flush()
-            elif data == "Down":
+
+            elif data.find("Down") != -1:
                 process.stdin.write(b"DOWN\n")
+               
                 process.stdin.flush()
-            elif data == "Left":
+
+            elif data.find("Left") != -1:
                 process.stdin.write(b"LEFT\n")
                 process.stdin.flush()
-            elif data == "Right":
+
+            elif data.find("Right") != -1:
                 process.stdin.write(b"RIGHT\n")
                 process.stdin.flush()
             
 
             print(data)
 
-        # Short sleep to prevent high CPU usage
-        # time.sleep(0.01)  # Adjust sleep time as needed for your application
-
-        # if data:
-        #     process.stdin.write(data)
-        #     process.stdin.flush()
-        #     print(f"Sent data to subprocess: {data}")
-
 # Function to run the subprocess
 def run_subprocess():
     # Start the subprocess
-    process = subprocess.Popen(['python3', 'pong.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(['python3', 'snake.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Start thread to read from Bluetooth device and send to subprocess
     read_thread = threading.Thread(target=read_from_device_and_send, args=(device, process))
@@ -75,7 +74,7 @@ for entry in radio.start_scan(timeout=1200, minimum_rssi=-80):
         print(entry.complete_name)
 
         # Replace with your device IDs
-        if entry.complete_name in ["Jang", "Han"]:
+        if entry.complete_name in ["Jang"]:
             found.add(addr)
             device = radio.connect(entry)
             print("Device connected!")
