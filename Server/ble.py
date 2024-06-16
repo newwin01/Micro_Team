@@ -20,7 +20,7 @@ def read_from_device_and_send(device):
             data = data.decode('utf-8').strip()
 
             # Send the appropriate commands to the subprocess
-            if data == "Button4":
+            if data.find("Button4") != -1:
                 current_process.stdin.write(b"END\n")
                 current_process.stdin.flush()
                 current_process.stdin.write(b"END\n")
@@ -43,13 +43,13 @@ def read_from_device_and_send(device):
                 current_process.stdin.write(b"RIGHT\n")
                 current_process.stdin.flush()
 
-            elif data == "Button2":
+            elif data.find("Button2") != -1:
                 start_new_game("blicker.py")
 
-            elif data == "Button3":
+            elif data.find("Button3") != -1:
                 start_new_game("pong.py")
 
-            elif data == "Button1":
+            elif data.find("Button1") != -1:
                 start_new_game("snake.py")
 
             print(data)
@@ -93,7 +93,7 @@ for entry in radio.start_scan(timeout=1200, minimum_rssi=-80):
         print(entry.complete_name)
 
         # Replace with your device IDs
-        if entry.complete_name in ["Han"]:
+        if entry.complete_name in ["Jang"]:
             found.add(addr)
             device = radio.connect(entry)
             print("Device connected!")
