@@ -41,7 +41,7 @@ def read_from_device_and_send(device, process):
 # Function to run the subprocess
 def run_subprocess():
     # Start the subprocess
-    process = subprocess.Popen(['python', 'pong.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(['python3', 'pong.py'], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     # Start thread to read from Bluetooth device and send to subprocess
     read_thread = threading.Thread(target=read_from_device_and_send, args=(device, process))
