@@ -54,6 +54,8 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);
 
 #define BUTTON1 DK_BTN1_MSK
 #define BUTTON2 DK_BTN2_MSK
+#define BUTTON3 DK_BTN3_MSK
+#define BUTTON4 DK_BTN4_MSK
 
 #define UART_BUF_SIZE CONFIG_BT_NUS_UART_BUFFER_SIZE
 #define UART_WAIT_FOR_BUF_DELAY K_MSEC(50)
@@ -471,6 +473,16 @@ void button_changed(uint32_t button_state, uint32_t has_changed)
 
     if (buttons & BUTTON2) {
         char buf[7] = "Button2\n";
+        bt_nus_send(NULL, buf, sizeof(buf));
+    }
+
+    if (buttons & BUTTON3) {
+        char buf[7] = "Button3\n";
+        bt_nus_send(NULL, buf, sizeof(buf));
+    }
+
+    if (buttons & BUTTON4) {
+        char buf[7] = "Button4\n";
         bt_nus_send(NULL, buf, sizeof(buf));
     }
 
